@@ -39,7 +39,6 @@ def language_modeling(tokens):
         bigrams.append(temp)
     # print(bigrams)
     
-
     trigrams = list()
     for i in range(len(tokens)-2):   #trigram models
         temp = list()
@@ -115,6 +114,20 @@ def make_zipf():                        #plotting the zipf curve
 
 make_zipf()
 
-def laplace_smoothing():                    #laplace smoothing
+def laplace_smoothing():                    #laplace smoothing    
+    unigram_probs = dict()
+    for i in range(len(list_tokens)):
+        if unigram_probs.get(list_tokens[i]) == None:
+            unigram_probs[list_tokens[i]] = (vocabulary[list_tokens[i]]+1)/(len(list_tokens)+vocab_length)
 
+    bigram_probs = dict()
+    for i in range(len(bigrams)-1):
+        temp = bigrams[i][0] + '_' + bigrams[i][1]
+        if bigrams_probs.get(temp) == None:
+            bigrams_probs[temp] = (bigrams_dict[temp]+1)/(vocabulary[bigrams[i][0]])
 
+    trigram_probs =  dict()
+    for i in range(len(trigrams)-1):
+        temp = trigrams[i][0] + '_' + trigrams[i][1] + '_' + trigrams[i][2]
+        if trigrams_probs.get(temp) == None:
+            trigrams_probs[temp] = (trigrams_dict[temp]+1)/(bigrams_dict[trigrams[i][1]+'_'+trigrams[i][2]])
