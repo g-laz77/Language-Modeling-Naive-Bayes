@@ -3,6 +3,7 @@ import sys
 import matplotlib.pyplot as plt
 import operator
 import numpy as np
+import math
 
 file1 = sys.argv[1]
 scanner=re.Scanner([
@@ -51,19 +52,31 @@ for i in range(len(list_tokens)):
     else:
         vocabulary[list_tokens[i]] += 1
 
-sort_freq = sorted(vocabulary.items(), key = operator.itemgetter(1),reverse=True)
 
-zipf_x = list()
-zipf_y = list()
-for item in sort_freq:
-    zipf_x.append(item[0])
-    zipf_y.append(item[1])
+def make_zipf():                        #plotting the zipf curve
+    sort_freq = sorted(vocabulary.items(), key = operator.itemgetter(1),reverse=True)
 
-length = len(zipf_x)
-x_axis = [i for i in range(len(zipf_x))]
-x_axis = np.array(x_axis)
-plt.plot(x_axis,zipf_y, label="Zipf curve")         #plotting the zipf curve
-#plt.xticks(x_axis,zipf_x)
-plt.show()
+    zipf_x = list()
+    zipf_y = list()
+    log_zipf_y = list()
+    for item in sort_freq:
+        zipf_x.append(item[0])
+        zipf_y.append(item[1])
+        log_zipf_y.append(math.log(item[1]))    
+
+    length = len(zipf_x)
+    x_axis = [i for i in range(len(zipf_x))]
+    log_x_axis = [math.log(i+0.5) for i in range(len(zipf_x))]
+    x_axis = np.array(x_axis)
+    plt.plot(x_axis,zipf_y, label="Zipf curve")         
+    #plt.xticks(x_axis,zipf_x)
+    plt.show()
+    plt.plot(log_x_axis,log_zipf_y,label="logcurve")
+    plt.show()
+
+#def laplace_smoothing():
+
+
+make_zipf()
 
 
