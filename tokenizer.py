@@ -130,43 +130,46 @@ def laplace_smoothing():                    #laplace smoothing
         if ll_trigrams_probs.get(temp) == None:
             ll_trigrams_probs[temp] = (trigrams_dict[temp]+1)/(bigrams_dict[trigrams[i][1]+'_'+trigrams[i][2]]+ len(list_tokens)-1)
 
-ll_unigrams_probs = dict()
-ll_bigrams_probs = dict()
-ll_trigrams_probs =  dict()
-laplace_smoothing()
-uni_sort_freq = sorted(ll_unigrams_probs.items(), key = operator.itemgetter(1),reverse=True)
-curve_x = list()
-curve_y = list()
-i = 0
-for item in uni_sort_freq:
-    curve_x.append(i)
-    i += 1
-    curve_y.append(item[1])
-plt.plot(curve_x,curve_y)
-plt.show()
+# ll_unigrams_probs = dict()
+# ll_bigrams_probs = dict()
+# ll_trigrams_probs =  dict()
+# laplace_smoothing()
 
-bi_sort_freq = sorted(ll_bigrams_probs.items(), key = operator.itemgetter(1),reverse=True)
-curve_x = list()
-curve_y = list()
-i = 0
-for item in bi_sort_freq:
-    curve_x.append(i)
-    i += 1
-    curve_y.append(item[1])
-plt.plot(curve_x,curve_y)
-plt.show()
+def smoothing_curve(uni_probs,bi_probs,tri_probs):
+    uni_sort_freq = sorted(uni_probs.items(), key = operator.itemgetter(1),reverse=True)
+    curve_x = list()
+    curve_y = list()
+    i = 0
+    for item in uni_sort_freq:
+        curve_x.append(i)
+        i += 1
+        curve_y.append(item[1])
+    plt.plot(curve_x,curve_y)
+    plt.show()
 
-tri_sort_freq = sorted(ll_trigrams_probs.items(), key = operator.itemgetter(1),reverse=True)
-curve_x = list()
-curve_y = list()
-i = 0
-for item in tri_sort_freq:
-    curve_x.append(i)
-    i += 1
-    curve_y.append(item[1])
-plt.plot(curve_x,curve_y)
-plt.show()
-tri_sort_freq = sorted(ll_trigrams_probs.items(), key = operator.itemgetter(1),reverse=True)
+    bi_sort_freq = sorted(bi_probs.items(), key = operator.itemgetter(1),reverse=True)
+    curve_x = list()
+    curve_y = list()
+    i = 0
+    for item in bi_sort_freq:
+        curve_x.append(i)
+        i += 1
+        curve_y.append(item[1])
+    plt.plot(curve_x,curve_y)
+    plt.show()
+
+    tri_sort_freq = sorted(tri_probs.items(), key = operator.itemgetter(1),reverse=True)
+    curve_x = list()
+    curve_y = list()
+    i = 0
+    for item in tri_sort_freq:
+        curve_x.append(i)
+        i += 1
+        curve_y.append(item[1])
+    plt.plot(curve_x,curve_y)
+    plt.show()
+
+#smoothing_curve(ll_unigrams_probs,ll_bigrams_probs,ll_trigrams_probs)
 
 def wb_prob(word1,word2,word3,level):
     if level == 3:
@@ -177,7 +180,9 @@ def wb_prob(word1,word2,word3,level):
                 count += 1
         onelambda = count / (count + len(list_tokens)-2)
         lamb = 1 - onelambda  
-        return ((lamb*trigrams_probs[word1+"_"+word2+"_"+word3]) + (onelambda)*wb_prob(word1,word2,"",2))
+        if wb_bigrams_probs.get(word1+"_"+word2) == None:
+           wb_bigrams_probs[word1+"_"+word2] = wb_prob(word1,word2,"",2)   
+        return ((lamb*trigrams_probs[word1+"_"+word2+"_"+word3]) + (onelambda)*wb_bigrams_probs[word1+"_"+word2])
 
     elif level == 2:
         count = 0
@@ -187,24 +192,28 @@ def wb_prob(word1,word2,word3,level):
                 count += 1
         onelambda = count / (count + len(list_tokens)-1)
         lamb = 1 - onelambda  
-        return ((lamb*bigrams_probs[word1+"_"+word2]) + (onelambda)*wb_prob(word1,"","",1))
-    else:
-        return ((unigram_probs[word1]))
+        return ((lamb*bigrams_probs[word1+"_"+word2]) + (onelambda)*unigram_probs[word1])
+
 
 def witten_bell():
     for i in range(len(trigrams)-1):
         temp = trigrams[i][0] + '_' + trigrams[i][1] + '_' + trigrams[i][2]
         if wb_trigrams_probs.get(temp) == None:
-            wb_trigrams_probs[temp] = wb_prob(trigram[i][0],trigram[i][1],trigram[i][2],3)
+            wb_trigrams_probs[temp] = wb_prob(trigrams[i][0],trigrams[i][1],trigrams[i][2],3)
     
     for i in range(len(bigrams)-1):
         temp = bigrams[i][0] + '_' + bigrams[i][1] + '_' + bigrams[i][2]
         if wb_bigrams_probs.get(temp) == None:
-            wb_bigrams_probs[temp] = wb_prob(bigram[i][0],bigram[i][1],"",2)
+            wb_bigrams_probs[temp] = wb_prob(bigrams[i][0],bigrams[i][1],"",2)
     
     for i in range(len(list_tokens)):
         if wb_unigrams_probs.get(list_tokens[i]) == None:
-            wb_unigrams_probs[temp] = wb_prob(list_tokens[i],"","",1)
+            wb_unigrams_probs[list_tokens[i]] = unigram_probs[list_token[i]]
 
+wb_unigrams_probs = dict()
+wb_bigrams_probs = dict()
+wb_trigrams_probs =  dict()
+witten_bell()
+smoothing_curve(wb_unigrams_probs,wb_bigrams_probs,wb_trigrams_probs)
 
     
