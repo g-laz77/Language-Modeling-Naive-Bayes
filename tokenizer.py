@@ -50,8 +50,9 @@ def language_modeling(tokens):
     return bigrams,trigrams
 
 list_tokens = tokenize(file1)               #making the vocabulary
-bigrams,trigrams = language_modeling(list_tokens)
 vocabulary = dict()
+bigrams,trigrams = language_modeling(list_tokens)
+
 for i in range(len(list_tokens)):
     if vocabulary.get(list_tokens[i]) == None:
         vocabulary[list_tokens[i]] = 1
@@ -72,7 +73,7 @@ for i in range(len(bigrams)-1):
         bigrams_dict[temp] += 1
 bg_vocab_len = len(bigrams_dict)
 
-bigram_probs = dict()
+bigrams_probs = dict()
 for i in range(len(bigrams)-1):
     temp = bigrams[i][0] + '_' + bigrams[i][1]
     if bigrams_probs.get(temp) == None:
@@ -83,10 +84,10 @@ for i in range(len(trigrams)-1):
     if trigrams_dict.get(temp) == None:
         trigrams_dict[temp] = 1
     else:
-        triigrams_dict[temp] += 1
+        trigrams_dict[temp] += 1
 trg_vocab_len = len(trigrams_dict)
 
-trigram_probs =  dict()
+trigrams_probs =  dict()
 for i in range(len(trigrams)-1):
     temp = trigrams[i][0] + '_' + trigrams[i][1] + '_' + trigrams[i][2]
     if trigrams_probs.get(temp) == None:
@@ -114,20 +115,59 @@ def make_zipf():                        #plotting the zipf curve
 
 make_zipf()
 
-def laplace_smoothing():                    #laplace smoothing    
-    unigram_probs = dict()
+def laplace_smoothing():                    #laplace smoothing        
     for i in range(len(list_tokens)):
-        if unigram_probs.get(list_tokens[i]) == None:
-            unigram_probs[list_tokens[i]] = (vocabulary[list_tokens[i]]+1)/(len(list_tokens)+vocab_length)
+        if ll_unigrams_probs.get(list_tokens[i]) == None:
+            ll_unigrams_probs[list_tokens[i]] = (vocabulary[list_tokens[i]]+1)/(len(list_tokens)+vocab_length)
 
-    bigram_probs = dict()
     for i in range(len(bigrams)-1):
         temp = bigrams[i][0] + '_' + bigrams[i][1]
-        if bigrams_probs.get(temp) == None:
-            bigrams_probs[temp] = (bigrams_dict[temp]+1)/(vocabulary[bigrams[i][0]])
+        if ll_bigrams_probs.get(temp) == None:
+            ll_bigrams_probs[temp] = (bigrams_dict[temp]+1)/(vocabulary[bigrams[i][0]]+vocab_length)
 
-    trigram_probs =  dict()
     for i in range(len(trigrams)-1):
         temp = trigrams[i][0] + '_' + trigrams[i][1] + '_' + trigrams[i][2]
-        if trigrams_probs.get(temp) == None:
-            trigrams_probs[temp] = (trigrams_dict[temp]+1)/(bigrams_dict[trigrams[i][1]+'_'+trigrams[i][2]])
+        if ll_trigrams_probs.get(temp) == None:
+            ll_trigrams_probs[temp] = (trigrams_dict[temp]+1)/(bigrams_dict[trigrams[i][1]+'_'+trigrams[i][2]]+ len(list_tokens)-1)
+
+ll_unigrams_probs = dict()
+ll_bigrams_probs = dict()
+ll_trigrams_probs =  dict()
+laplace_smoothing()
+uni_sort_freq = sorted(ll_unigrams_probs.items(), key = operator.itemgetter(1),reverse=True)
+curve_x = list()
+curve_y = list()
+i = 0
+for item in uni_sort_freq:
+    curve_x.append(i)
+    i += 1
+    curve_y.append(item[1])
+plt.plot(curve_x,curve_y)
+plt.show()
+
+bi_sort_freq = sorted(ll_bigrams_probs.items(), key = operator.itemgetter(1),reverse=True)
+curve_x = list()
+curve_y = list()
+i = 0
+for item in bi_sort_freq:
+    curve_x.append(i)
+    i += 1
+    curve_y.append(item[1])
+plt.plot(curve_x,curve_y)
+plt.show()
+
+tri_sort_freq = sorted(ll_trigrams_probs.items(), key = operator.itemgetter(1),reverse=True)
+curve_x = list()
+curve_y = list()
+i = 0
+for item in tri_sort_freq:
+    curve_x.append(i)
+    i += 1
+    curve_y.append(item[1])
+plt.plot(curve_x,curve_y)
+plt.show()
+tri_sort_freq = sorted(ll_trigrams_probs.items(), key = operator.itemgetter(1),reverse=True)
+
+# def witten_bell():
+
+    
