@@ -215,4 +215,35 @@ wb_trigrams_probs =  dict()
 witten_bell()
 smoothing_curve(wb_unigrams_probs,wb_bigrams_probs,wb_trigrams_probs)
 
+def kn_prob(word1,word2,word3,level,discount = 0.75):
+    count = 0
+    c2 = 0
+    if level == 2:
+        if (bigrams_dict.get(word1+"_"+word2) == None) or ((bigrams_dict[word1+"_"+word2] - discount) < 0):
+            for key in bigrams_dict.keys():
+                k_spl = key.split("_")
+                if k_spl[1] == word2:
+                    count += 1
+                if k_spl[0] == word1:
+                    c2 += 1
+            prob_cont = count / len(bigrams_dict.keys())
+            alpha = (discount/vocabulary[word1])*c2
+            kn_bigrams_probs = prob_cont * alpha
+        else:
+            kn_bigrams_probs = ((bigrams_dict[word1+"_"+word2] - discount) / vocabulary[word1])
+
+def kneyser_Neys():
+    for i in range(len(trigrams)):
+        temp = trigrams[i][0] + '_' + trigrams[i][1] +'_' + trigrams[i][2]
+        if kn_trigrams_probs.get(temp) == None:
+            kn_trigrams_probs[temp] = kn_prob(trigrams[i][0],trigrams[i][1],trigrams[i][2],3)
     
+    for i in range(len(bigrams)):
+        temp = bigrams[i][0] + '_' + bigrams[i][1]
+        if kn_bigrams_probs.get(temp) == None:
+            kn_bigrams_probs[temp] = kn_prob(bigrams[i][0],bigrams[i][1],"",2)
+    
+
+kn_unigrams_probs = dict()
+kn_bigrams_probs = dict()
+# kn_trigrams_probs =  dict()    
