@@ -89,7 +89,7 @@ trigrams_probs =  dict()
 for i in range(len(trigrams)):
     temp = trigrams[i][0] + '_' + trigrams[i][1] + '_' + trigrams[i][2]
     if trigrams_probs.get(temp) == None:
-        trigrams_probs[temp] = trigrams_dict[temp]/bigrams_dict[trigrams[i][1]+'_'+trigrams[i][2]]
+        trigrams_probs[temp] = trigrams_dict[temp]/bigrams_dict[trigrams[i][0]+'_'+trigrams[i][1]]
 
 def make_zipf():                        #plotting the zipf curve
     sort_freq = sorted(vocabulary.items(), key = operator.itemgetter(1),reverse=True)
@@ -138,8 +138,8 @@ def smoothing_curve(uni_probs,bi_probs,tri_probs):
         curve_x.append(i)
         i += 1
         curve_y.append(item[1])
-    plt.plot(curve_x,curve_y)
-    plt.show()
+    plt.plot(curve_x,curve_y,'r')
+    # plt.show()
 
     bi_sort_freq = sorted(bi_probs.items(), key = operator.itemgetter(1),reverse=True)
     curve_x = list()
@@ -149,8 +149,8 @@ def smoothing_curve(uni_probs,bi_probs,tri_probs):
         curve_x.append(i)
         i += 1
         curve_y.append(item[1])
-    plt.plot(curve_x,curve_y)
-    plt.show()
+    plt.plot(curve_x,curve_y,'b')
+    # plt.show()
 
     tri_sort_freq = sorted(tri_probs.items(), key = operator.itemgetter(1),reverse=True)
     curve_x = list()
@@ -160,7 +160,7 @@ def smoothing_curve(uni_probs,bi_probs,tri_probs):
         curve_x.append(i)
         i += 1
         curve_y.append(item[1])
-    plt.plot(curve_x,curve_y)
+    plt.plot(curve_x,curve_y,'g')
     plt.show()
 
 ll_unigrams_probs = dict()
@@ -177,10 +177,10 @@ def wb_prob(word1,word2,word3,level):
             if k_spl[2] == word3:
                 count += 1
         onelambda = count / (count + len(list_tokens)-2)
-        lamb = 1 - onelambda  
-        if wb_bigrams_probs.get(word1+"_"+word2) == None:
-           wb_bigrams_probs[word1+"_"+word2] = wb_prob(word1,word2,"",2)   
-        return ((lamb*trigrams_probs[word1+"_"+word2+"_"+word3]) + (onelambda)*wb_bigrams_probs[word1+"_"+word2])
+        lamb = 1.0 - onelambda  
+        if wb_bigrams_probs.get(word2+"_"+word3) == None:
+           wb_bigrams_probs[word2+"_"+word3] = wb_prob(word2,word3,"",2)   
+        return ((lamb*trigrams_probs[word1+"_"+word2+"_"+word3]) + (onelambda)*wb_bigrams_probs[word2+"_"+word3])
     elif level == 2:
         count = 0
         for key in bigrams_dict.keys():
@@ -189,7 +189,8 @@ def wb_prob(word1,word2,word3,level):
                 count += 1
         onelambda = count / (count + len(list_tokens)-1)
         lamb = 1 - onelambda  
-        return ((lamb*bigrams_probs[word1+"_"+word2]) + (onelambda)*unigram_probs[word1])
+        # print(lamb,bigrams_probs[word1+"_"+word2])
+        return ((lamb*bigrams_probs[word1+"_"+word2]) + (onelambda)*unigram_probs[word2])
 
 def witten_bell():
     for i in range(len(trigrams)):
@@ -212,10 +213,60 @@ wb_trigrams_probs =  dict()
 witten_bell()
 smoothing_curve(wb_unigrams_probs,wb_bigrams_probs,wb_trigrams_probs)
 
+def compare(uni1,uni2):
+    uni_sort_freq = sorted(uni1.items(), key = operator.itemgetter(1),reverse=True)
+    curve_x = list()
+    curve_y = list()
+    i = 0
+    for item in uni_sort_freq:
+        curve_x.append(i)
+        i += 1
+        curve_y.append(item[1])
+    plt.plot(curve_x,curve_y,'b')
+    uni_sort_freq = sorted(uni2.items(), key = operator.itemgetter(1),reverse=True)
+    curve_x = list()
+    curve_y = list()
+    i = 0
+    for item in uni_sort_freq:
+        curve_x.append(i)
+        i += 1
+        curve_y.append(item[1])
+    plt.plot(curve_x,curve_y,'r')
+    plt.show()
+
+compare(wb_unigrams_probs,ll_unigrams_probs)
 def kn_prob(word1,word2,word3,level,discount = 0.75):
     count = 0
     c2 = 0
-    if level == 2:
+    if level == 3:
+        term1 = max((trigrams_dict[word1+"_"+word2] - discount) / vocabulary[word1],0)
+        for key in trigrams_dict.keys():
+            k = key.split('_')
+            if k[0] == word1 and k[1] == word2:
+                count += 1
+        
+        term2 = discount * (count/bigrams_dict[word1+"_"+word2])
+        count = count2 = 0
+        for key in trigrams_dict.keys():
+            k = key.split('_')
+            if k[1] == word2 and k[2] == word3:
+                count += 1
+            if k[1] == word2:
+                count2 += 1
+        
+        term3 = max((count-discount),0)/count2
+        count = count3 = 0
+        for key in (bigrams_dict.keys()):
+            k = key.split('_')
+            if k[0] == word2:
+                count += 1 
+            if k[1] == word3:
+                count3 += 1
+        
+        term4 = discount * (count/count2) * (count3/len(bigrams_dict)) 
+        return (term1 + term2 * (term3+term4))
+
+    elif level == 2:
         if (bigrams_dict.get(word1+"_"+word2) == None) or ((bigrams_dict[word1+"_"+word2] - discount) < 0):
             for key in bigrams_dict.keys():
                 k_spl = key.split("_")
@@ -225,9 +276,9 @@ def kn_prob(word1,word2,word3,level,discount = 0.75):
                     c2 += 1
             prob_cont = count / len(bigrams_dict.keys())
             alpha = (discount/vocabulary[word1])*c2
-            kn_bigrams_probs = prob_cont * alpha
+            return (prob_cont * alpha)
         else:
-            kn_bigrams_probs = ((bigrams_dict[word1+"_"+word2] - discount) / vocabulary[word1])
+            return ((bigrams_dict[word1+"_"+word2] - discount) / vocabulary[word1])
 
 def kneyser_Neys():
     for i in range(len(trigrams)):
@@ -239,7 +290,87 @@ def kneyser_Neys():
         temp = bigrams[i][0] + '_' + bigrams[i][1]
         if kn_bigrams_probs.get(temp) == None:
             kn_bigrams_probs[temp] = kn_prob(bigrams[i][0],bigrams[i][1],"",2)
-    
-kn_unigrams_probs = dict()
+
+# kn_unigrams_probs = dict()
 kn_bigrams_probs = dict()
-# kn_trigrams_probs =  dict()    
+kn_trigrams_probs =  dict() 
+   
+#naive Bayes
+file1_tokens = tokenize("entertainment_anime.txt")
+file2_tokens = tokenize("lifestyle_food.txt")
+file3_tokens = tokenize("news_conservative.txt")
+
+file1_bi,file1_tri = language_modeling(file1_tokens)
+file2_bi,file2_tri = language_modeling(file2_tokens)
+file3_bi,file3_tri = language_modeling(file3_tokens)
+
+file1_vocab = dict()
+file2_vocab = dict()
+file3_vocab = dict()
+
+for i in range(len(file1_tokens)):
+    if file1_vocab.get(file1_tokens[i]) == None:
+        file1_vocab[file1_tokens[i]] = 1
+    else:
+        file1_vocab[file1_tokens[i]] += 1
+
+for i in range(len(file2_tokens)):
+    if file2_vocab.get(file2_tokens[i]) == None:
+        file2_vocab[file2_tokens[i]] = 1
+    else:
+        file2_vocab[file2_tokens[i]] += 1
+
+for i in range(len(file3_tokens)):
+    if file3_vocab.get(file3_tokens[i]) == None:
+        file3_vocab[file3_tokens[i]] = 1
+    else:
+        file3_vocab[file3_tokens[i]] += 1
+
+# def make_zipf():                        #plotting the zipf curve
+sort_freq = sorted(file1_vocab.items(), key = operator.itemgetter(1),reverse=True)
+zipf_x = list()
+zipf_y = list()
+log_zipf_y = list()
+for item in sort_freq:
+    zipf_x.append(item[0])
+    zipf_y.append(item[1])
+    log_zipf_y.append(math.log(item[1]))    
+
+length = len(zipf_x)
+x_axis = [i for i in range(len(zipf_x))]
+log_x_axis = [math.log(i+0.5) for i in range(len(zipf_x))]
+x_axis = np.array(x_axis)
+plt.plot(x_axis,zipf_y,'r', label="File-1")         
+
+sort_freq = sorted(file2_vocab.items(), key = operator.itemgetter(1),reverse=True)
+zipf_x = list()
+zipf_y = list()
+log_zipf_y = list()
+for item in sort_freq:
+    zipf_x.append(item[0])
+    zipf_y.append(item[1])
+    log_zipf_y.append(math.log(item[1]))    
+
+length = len(zipf_x)
+x_axis = [i for i in range(len(zipf_x))]
+log_x_axis = [math.log(i+0.5) for i in range(len(zipf_x))]
+x_axis = np.array(x_axis)
+plt.plot(x_axis,zipf_y, 'b',label="File-2")
+
+sort_freq = sorted(file3_vocab.items(), key = operator.itemgetter(1),reverse=True)
+zipf_x = list()
+zipf_y = list()
+log_zipf_y = list()
+for item in sort_freq:
+    zipf_x.append(item[0])
+    zipf_y.append(item[1])
+    log_zipf_y.append(math.log(item[1]))    
+
+length = len(zipf_x)
+x_axis = [i for i in range(len(zipf_x))]
+log_x_axis = [math.log(i+0.5) for i in range(len(zipf_x))]
+x_axis = np.array(x_axis)
+plt.plot(x_axis,zipf_y, 'g',label="File-3")
+plt.legend(loc="upper right")
+plt.show()
+
