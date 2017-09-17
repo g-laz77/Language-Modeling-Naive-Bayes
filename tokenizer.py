@@ -22,7 +22,6 @@ def tokenize(filename):
     tokens = list()
     for result in results:
         tokens.append(result[1])
-    # print(tokens)
     return tokens
 
 def language_modeling(tokens):
@@ -37,7 +36,6 @@ def language_modeling(tokens):
         temp.append(tokens[i])
         temp.append(tokens[i+1])
         bigrams.append(temp)
-    # print(bigrams)
     
     trigrams = list()
     for i in range(len(tokens)-2):   #trigram models
@@ -113,7 +111,7 @@ def make_zipf():                        #plotting the zipf curve
     plt.plot(log_x_axis,log_zipf_y,label="logcurve")
     plt.show()
 
-#make_zipf()
+make_zipf()
 
 def laplace_smoothing():                    #laplace smoothing        
     for i in range(len(list_tokens)):
@@ -165,11 +163,11 @@ def smoothing_curve(uni_probs,bi_probs,tri_probs):
     plt.plot(curve_x,curve_y)
     plt.show()
 
-# ll_unigrams_probs = dict()
-# ll_bigrams_probs = dict()
-# ll_trigrams_probs =  dict()
-# laplace_smoothing()
-# smoothing_curve(ll_unigrams_probs,ll_bigrams_probs,ll_trigrams_probs)
+ll_unigrams_probs = dict()
+ll_bigrams_probs = dict()
+ll_trigrams_probs =  dict()
+laplace_smoothing()
+smoothing_curve(ll_unigrams_probs,ll_bigrams_probs,ll_trigrams_probs)
 
 def wb_prob(word1,word2,word3,level):
     if level == 3:
@@ -192,7 +190,6 @@ def wb_prob(word1,word2,word3,level):
         onelambda = count / (count + len(list_tokens)-1)
         lamb = 1 - onelambda  
         return ((lamb*bigrams_probs[word1+"_"+word2]) + (onelambda)*unigram_probs[word1])
-
 
 def witten_bell():
     for i in range(len(trigrams)):
@@ -243,7 +240,6 @@ def kneyser_Neys():
         if kn_bigrams_probs.get(temp) == None:
             kn_bigrams_probs[temp] = kn_prob(bigrams[i][0],bigrams[i][1],"",2)
     
-
 kn_unigrams_probs = dict()
 kn_bigrams_probs = dict()
 # kn_trigrams_probs =  dict()    

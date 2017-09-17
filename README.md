@@ -10,8 +10,8 @@ A language modelling of subreddits for NLP course at IIIT-H
 - [x] Implement unigram, bigram and trigram language models. 
 - [x] Plot log-log curve and zipf curve for the above
 - [x] Implement laplace smoothing. Compare the effect of smoothing on different values for V (200, 2000, current size of vocabulary, 10*size of vocabulary). Plot these to compare.
-- [ ] Implement Witten-Bell backoff. 
-- [ ] Implement Kneser-Ney smoothing. 
+- [x] Implement Witten-Bell backoff. 
+- [x] Implement Kneser-Ney smoothing. 
 - [ ] Compare the effects of the three smoothing techniques. (Plot)
 - [ ] In Kneser-Ney, what happens if we use the estimates from laplace and wittenbell in the absolute discounting step ?. (Plot & Compare)
 - [ ] Using KN-estimates from the three sources, generate text with unigram, bigram and trigram probabilities. 
