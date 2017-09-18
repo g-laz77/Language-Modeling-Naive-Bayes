@@ -5,6 +5,11 @@ import matplotlib.pyplot as plt
 import operator
 import numpy as np
 import math
+filename1 = sys.argv[1]
+filename2 = sys.argv[2]
+filename3 = sys.argv[3]
+
+
 unigrams_dict = dict()
 bigrams_dict = dict()
 trigrams_dict = dict()
@@ -456,9 +461,9 @@ print(sentence)
 
 
 #naive Bayes
-file1_tokens = tokenize("entertainment_anime.txt")
-file2_tokens = tokenize("lifestyle_food.txt")
-file3_tokens = tokenize("news_conservative.txt")
+file1_tokens = tokenize(filename1)
+file2_tokens = tokenize(filename2)
+file3_tokens = tokenize(filename3)
 
 file1_bi,file1_tri = language_modeling(file1_tokens)
 file2_bi,file2_tri = language_modeling(file2_tokens)
