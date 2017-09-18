@@ -14,10 +14,10 @@ A language modelling of subreddits for NLP course at IIIT-H
 - [x] Implement Kneser-Ney smoothing. 
 - [x] Compare the effects of the three smoothing techniques. (Plot)
 - [ ] In Kneser-Ney, what happens if we use the estimates from laplace and wittenbell in the absolute discounting step ?. (Plot & Compare)
-- [ ] Using KN-estimates from the three sources, generate text with unigram, bigram and trigram probabilities. 
+- [x] Using KN-estimates from the three sources, generate text with unigram, bigram and trigram probabilities. 
 
 ## Naive Bayes
 ------------------
 - [x] Plot the zipf's curves of all the three sources on one graph. Where do they match ? Where don't they match ?
-- [ ] Formulate tokenisation as a supervised problem. Annotate a small section of each source. Use the language models you have implemented.  Implement naive bayes algorithm for this problem.
+- [x] Formulate tokenisation as a supervised problem. Annotate a small section of each source. Use the language models you have implemented.  Implement naive bayes algorithm for this problem.
 - [ ] How does it perform ? .

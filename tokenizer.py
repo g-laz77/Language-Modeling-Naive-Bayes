@@ -1,3 +1,4 @@
+from copy import deepcopy
 import re
 import sys
 import matplotlib.pyplot as plt
@@ -46,6 +47,42 @@ def language_modeling(tokens):
         trigrams.append(temp)
 
     return bigrams,trigrams
+
+def smoothing_curve(uni_probs,bi_probs,tri_probs,Type):
+    uni_sort_freq = sorted(uni_probs.items(), key = operator.itemgetter(1),reverse=True)
+    curve_x = list()
+    curve_y = list()
+    i = 0
+    for item in uni_sort_freq:
+        curve_x.append(i)
+        i += 1
+        curve_y.append(item[1])
+    plt.plot(curve_x,curve_y,label="Unigram")
+    # plt.show()
+
+    bi_sort_freq = sorted(bi_probs.items(), key = operator.itemgetter(1),reverse=True)
+    curve_x = list()
+    curve_y = list()
+    i = 0
+    for item in bi_sort_freq:
+        curve_x.append(i)
+        i += 1
+        curve_y.append(item[1])
+    plt.plot(curve_x,curve_y,label="Bigram")
+    # plt.show()
+
+    tri_sort_freq = sorted(tri_probs.items(), key = operator.itemgetter(1),reverse=True)
+    curve_x = list()
+    curve_y = list()
+    i = 0
+    for item in tri_sort_freq:
+        curve_x.append(i)
+        i += 1
+        curve_y.append(item[1])
+    plt.plot(curve_x,curve_y,label="Trigram")
+    plt.legend(loc="upper right")
+    plt.title("Zipf curves: "+Type)
+    plt.show()
 
 list_tokens = tokenize(file1)               #making the vocabulary
 vocabulary = dict()
@@ -115,64 +152,61 @@ def make_zipf():                        #plotting the zipf curve
     plt.show()
 
 make_zipf()
+smoothing_curve(unigram_probs,bigrams_probs,trigrams_probs,"MLE")
 
-def laplace_smoothing():                    #laplace smoothing        
+def laplace_smoothing_val(factor):                    #laplace smoothing        
     for i in range(len(list_tokens)):
         if ll_unigrams_probs.get(list_tokens[i]) == None:
-            ll_unigrams_probs[list_tokens[i]] = (vocabulary[list_tokens[i]]+1)/(len(list_tokens)+vocab_length)
+            ll_unigrams_probs[list_tokens[i]] = (vocabulary[list_tokens[i]]+1)/(len(list_tokens)+factor)
 
     for i in range(len(bigrams)):
         temp = bigrams[i][0] + '~' + bigrams[i][1]
         if ll_bigrams_probs.get(temp) == None:
-            ll_bigrams_probs[temp] = (bigrams_dict[temp]+1)/(vocabulary[bigrams[i][0]]+vocab_length)
+            ll_bigrams_probs[temp] = (bigrams_dict[temp]+1)/(vocabulary[bigrams[i][0]]+factor)
 
     for i in range(len(trigrams)):
         temp = trigrams[i][0] + '~' + trigrams[i][1] + '~' + trigrams[i][2]
         if ll_trigrams_probs.get(temp) == None:
-            ll_trigrams_probs[temp] = (trigrams_dict[temp]+1)/(bigrams_dict[trigrams[i][1]+'~'+trigrams[i][2]]+ len(list_tokens)-1)
-
-
-def smoothing_curve(uni_probs,bi_probs,tri_probs,Type):
-    uni_sort_freq = sorted(uni_probs.items(), key = operator.itemgetter(1),reverse=True)
-    curve_x = list()
-    curve_y = list()
-    i = 0
-    for item in uni_sort_freq:
-        curve_x.append(i)
-        i += 1
-        curve_y.append(item[1])
-    plt.plot(curve_x,curve_y,label="Unigram")
-    # plt.show()
-
-    bi_sort_freq = sorted(bi_probs.items(), key = operator.itemgetter(1),reverse=True)
-    curve_x = list()
-    curve_y = list()
-    i = 0
-    for item in bi_sort_freq:
-        curve_x.append(i)
-        i += 1
-        curve_y.append(item[1])
-    plt.plot(curve_x,curve_y,label="Bigram")
-    # plt.show()
-
-    tri_sort_freq = sorted(tri_probs.items(), key = operator.itemgetter(1),reverse=True)
-    curve_x = list()
-    curve_y = list()
-    i = 0
-    for item in tri_sort_freq:
-        curve_x.append(i)
-        i += 1
-        curve_y.append(item[1])
-    plt.plot(curve_x,curve_y,label="Trigram")
-    plt.legend(loc="upper right")
-    plt.title("Zipf curves: "+Type)
-    plt.show()
+            ll_trigrams_probs[temp] = (trigrams_dict[temp]+1)/(bigrams_dict[trigrams[i][1]+'~'+trigrams[i][2]]+factor)
 
 ll_unigrams_probs = dict()
 ll_bigrams_probs = dict()
 ll_trigrams_probs =  dict()
-laplace_smoothing()
-smoothing_curve(ll_unigrams_probs,ll_bigrams_probs,ll_trigrams_probs,"Laplace")
+laplace_smoothing_val(200)
+smoothing_curve(ll_unigrams_probs,ll_bigrams_probs,ll_trigrams_probs,"Laplace:200")
+
+ll_unigrams_probs = dict()
+ll_bigrams_probs = dict()
+ll_trigrams_probs =  dict()
+laplace_smoothing_val(2000)
+smoothing_curve(ll_unigrams_probs,ll_bigrams_probs,ll_trigrams_probs,"Laplace:2000")
+
+def laplace_smoothing(factor):                    #laplace smoothing        
+    for i in range(len(list_tokens)):
+        if ll_unigrams_probs.get(list_tokens[i]) == None:
+            ll_unigrams_probs[list_tokens[i]] = (vocabulary[list_tokens[i]]+1)/(len(list_tokens)+vocab_length*factor)
+
+    for i in range(len(bigrams)):
+        temp = bigrams[i][0] + '~' + bigrams[i][1]
+        if ll_bigrams_probs.get(temp) == None:
+            ll_bigrams_probs[temp] = (bigrams_dict[temp]+1)/(vocabulary[bigrams[i][0]]+vocab_length*factor)
+
+    for i in range(len(trigrams)):
+        temp = trigrams[i][0] + '~' + trigrams[i][1] + '~' + trigrams[i][2]
+        if ll_trigrams_probs.get(temp) == None:
+            ll_trigrams_probs[temp] = (trigrams_dict[temp]+1)/(bigrams_dict[trigrams[i][1]+'~'+trigrams[i][2]]+ len(list_tokens)-1*factor)
+
+ll_unigrams_probs = dict()
+ll_bigrams_probs = dict()
+ll_trigrams_probs =  dict()
+laplace_smoothing(1)
+smoothing_curve(ll_unigrams_probs,ll_bigrams_probs,ll_trigrams_probs,"Laplace:1")
+
+ll_unigrams_probs = dict()
+ll_bigrams_probs = dict()
+ll_trigrams_probs =  dict()
+laplace_smoothing(10)
+smoothing_curve(ll_unigrams_probs,ll_bigrams_probs,ll_trigrams_probs,"Laplace:10")
 
 def wb_prob(word1,word2,word3,level):
     if level == 3:
@@ -223,7 +257,7 @@ def kn_prob(word1,word2,word3,level,discount=0.5):
     count = 0
     c2 = 0
     if level == 3:
-        term1 = max((trigrams_dict[word1+"~"+word2+"~"+word3] - discount) / vocabulary[word1],0)
+        term1 = max((trigrams_dict[word1+"~"+word2+"~"+word3] - discount) / bigrams_dict[word1+"~"+word2],0)
         for key in trigrams_dict.keys():
             k = key.split('~')
             if k[0] == word1 and k[1] == word2:
@@ -251,9 +285,8 @@ def kn_prob(word1,word2,word3,level,discount=0.5):
         
         term4 = discount * (count/count2) * (count3/len(bigrams_dict)) 
         return (term1 + term2 * (term3+term4))
-
     elif level == 2:
-        if (bigrams_dict.get(word1+"~"+word2) == None) or ((bigrams_dict[word1+"~"+word2] - discount) < 0):
+        if (bigrams_dict.get(word1+"~"+word2) == None):
             for key in bigrams_dict.keys():
                 k_spl = key.split("~")
                 if k_spl[1] == word2:
@@ -265,6 +298,7 @@ def kn_prob(word1,word2,word3,level,discount=0.5):
             return (prob_cont * alpha)
         else:
             return ((bigrams_dict[word1+"~"+word2] - discount) / vocabulary[word1])
+    
 
 def kneser_Neys():
     for i in range(len(trigrams)):
@@ -281,11 +315,76 @@ def kneser_Neys():
         if kn_unigrams_probs.get(list_tokens[i]) == None:
             kn_unigrams_probs[list_tokens[i]] = max(vocabulary[list_tokens[i]] - 0.5,0)/len(list_tokens)
 
+def kn_prob_laplace(word1,word2,word3,level,discount=0.5):
+    count = 0
+    c2 = 0
+    if level == 3:
+        term1 = (trigrams_dict[word1+"~"+word2+"~"+word3]+1)/(bigrams_dict[word1+'~'+word2]+ len(bigrams_dict))
+        for key in trigrams_dict.keys():
+            k = key.split('~')
+            if k[0] == word1 and k[1] == word2:
+                count += 1
+        
+        term2 = discount * (count/bigrams_dict[word1+"~"+word2])
+        count = count2 = 0
+        for key in trigrams_dict.keys():
+            k = key.split('~')
+            if k[1] == word2 and k[2] == word3:
+                count += 1
+            if k[1] == word2:
+                count2 += 1
+        
+        term3 = ((bigrams_dict[word1+"~"+word2] + 1) / vocabulary[word1]+len(vocabulary))
+        count = count3 = 0
+        for key in (bigrams_dict.keys()):
+            k = key.split('~')
+            if k[0] == word2:
+                count += 1 
+            if k[1] == word3:
+                count3 += 1
+        
+        term4 = discount * (count/count2) * (count3/len(bigrams_dict)) 
+        return (term1 + term2 * (term3+term4))
+    elif level == 2:
+        if (bigrams_dict.get(word1+"~"+word2) == None):
+            for key in bigrams_dict.keys():
+                k_spl = key.split("~")
+                if k_spl[1] == word2:
+                    count += 1
+                if k_spl[0] == word1:
+                    c2 += 1
+            prob_cont = count / len(bigrams_dict.keys())
+            alpha = (discount/vocabulary[word1])*c2
+            return (prob_cont * alpha)
+        else:
+            return ((bigrams_dict[word1+"~"+word2] + 1) / vocabulary[word1]+len(vocabulary))
+
+def kneser_Neys_laplace():
+    for i in range(len(trigrams)):
+        temp = trigrams[i][0] + '~' + trigrams[i][1] +'~' + trigrams[i][2]
+        if kn_trigrams_probs_laplace.get(temp) == None:
+            kn_trigrams_probs_laplace[temp] = kn_prob_laplace(trigrams[i][0],trigrams[i][1],trigrams[i][2],3)
+    
+    for i in range(len(bigrams)):
+        temp = bigrams[i][0] + '~' + bigrams[i][1]
+        if kn_bigrams_probs_laplace.get(temp) == None:
+            kn_bigrams_probs_laplace[temp] = kn_prob_laplace(bigrams[i][0],bigrams[i][1],"",2)
+
+    for i in range(len(list_tokens)):
+        if kn_unigrams_probs_laplace.get(list_tokens[i]) == None:
+            kn_unigrams_probs_laplace[list_tokens[i]] = (vocabulary[list_tokens[i]] + 1)/(len(list_tokens)+vocab_length)
+
 kn_unigrams_probs = dict()
 kn_bigrams_probs = dict()
 kn_trigrams_probs =  dict() 
 kneser_Neys()
 smoothing_curve(kn_unigrams_probs,kn_bigrams_probs,kn_trigrams_probs,"Kneser Neys")
+
+kn_unigrams_probs_laplace = dict()
+kn_bigrams_probs_laplace = dict()
+kn_trigrams_probs_laplace =  dict() 
+# kneser_Neys_laplace()
+# smoothing_curve(kn_unigrams_probs_laplace,kn_bigrams_probs_laplace,kn_trigrams_probs_laplace,"Kneser Neys:Laplace")
 
 def compare(uni1,uni2,uni3):
     uni_sort_freq = sorted(uni1.items(), key = operator.itemgetter(1),reverse=True)
@@ -320,6 +419,41 @@ def compare(uni1,uni2,uni3):
     plt.show()
 
 compare(wb_unigrams_probs,ll_unigrams_probs,kn_unigrams_probs)
+
+def get_next_word(prev, bi_kn_prob):
+    max = -1
+    ret = ''
+    for i in bi_kn_prob:
+        sp = i.split('~')
+        if sp[0] == prev:
+            if bi_kn_prob[i] > max:
+                max = bi_kn_prob[i]
+                ret = sp[1]
+    del bi_kn_prob[prev + '~' + ret]
+    return ret, bi_kn_prob
+
+sentence = 'the'
+start = 'the'
+done = {}
+done[start] = []
+flag = 0
+
+bi_kn_prob_copy = deepcopy(kn_bigrams_probs)
+
+for i in range(15):
+    while flag is 0:
+        word, bi_kn_prob_copy = get_next_word(start, bi_kn_prob_copy)
+        if word in done[start]:
+            flag = 0
+        else:
+            flag = 1
+    done[start].append(word)
+    sentence += ' ' + word
+    start = word
+    flag = 0
+    done[start] = []
+print(sentence)
+
 
 #naive Bayes
 file1_tokens = tokenize("entertainment_anime.txt")
@@ -561,37 +695,4 @@ plt.plot(x_axis,zipf_y,label="File-3-Trigram")
 plt.legend(loc="upper right")
 plt.title("Zipf curves for all 3 Text Sources")
 plt.show()
-
-
-#IOB model
-class_dict = dict()
-char_dict = dict()
-classes = ['I','E','O','B','S']
-
-#training
-with open("out.csv") as f:
-  while True:
-    line = f.readline()
-    line = line.split(',')
-    if class_dict.get(line[1]) == None:
-        class_dict[line[1]] = 1
-    else:
-        class_dict[1] += 1
-
-    if char_dict.get(line[0]+"_"+line[1]) == None:
-        char_dict[line[0]+"_"+line[1]] = 1
-    else:
-        char_dict[line[0]+"_"+line[1]] += 1
-
-#testing
-fil1 = open("lifestyle.txt")
-text = fil1.readlines(10)
-
-
-
-
-#testing
-
-
-
 
