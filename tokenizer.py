@@ -561,3 +561,37 @@ plt.plot(x_axis,zipf_y,label="File-3-Trigram")
 plt.legend(loc="upper right")
 plt.title("Zipf curves for all 3 Text Sources")
 plt.show()
+
+
+#IOB model
+class_dict = dict()
+char_dict = dict()
+classes = ['I','E','O','B','S']
+
+#training
+with open("out.csv") as f:
+  while True:
+    line = f.readline()
+    line = line.split(',')
+    if class_dict.get(line[1]) == None:
+        class_dict[line[1]] = 1
+    else:
+        class_dict[1] += 1
+
+    if char_dict.get(line[0]+"_"+line[1]) == None:
+        char_dict[line[0]+"_"+line[1]] = 1
+    else:
+        char_dict[line[0]+"_"+line[1]] += 1
+
+#testing
+fil1 = open("lifestyle.txt")
+text = fil1.readlines(10)
+
+
+
+
+#testing
+
+
+
+
